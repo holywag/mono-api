@@ -1,4 +1,5 @@
 import requests
+from requests_toolbelt.utils import dump
 from datetime import datetime, timedelta
 
 class IbanNotFound(Exception):
@@ -7,6 +8,13 @@ class IbanNotFound(Exception):
     def __init__(self, iban):
         super().__init__(f'Account with the specified IBAN not found: {iban}')
         self.iban = iban
+
+class MonobankApiErrorResponse(Exception):
+    """API returned an error.
+    """
+    def __init__(self, response):
+        super().__init__(f'Monobank API returned an error: {response.text}\nFull response:\n{dump.dump_all(response)}')
+        self.response = response
 
 class MonobankApi:
     """Wrapper for monobank REST API (https://api.monobank.ua/docs/)
@@ -28,9 +36,12 @@ class MonobankApi:
     def request_account_id(self, iban):
         headers =  {'X-Token': self.token}
         response = requests.get(MonobankApi.CLIENT_INFO_API_URL, headers=headers)
-        for account in response.json()['accounts']:
-            if account["iban"] == iban:
-                return account["id"]
+        try:
+            for account in response.json()['accounts']:
+                if account["iban"] == iban:
+                    return account["id"]
+        except:
+            raise MonobankApiErrorResponse(response)
         raise IbanNotFound(iban)
 
     def request_statements_for_last_n_days(self, account_id, n_days):
