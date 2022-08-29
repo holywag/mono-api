@@ -1,6 +1,6 @@
 import requests
 from requests_toolbelt.utils import dump
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 
 class IbanNotFound(Exception):
     """Account with the specified IBAN not found.
@@ -54,6 +54,6 @@ class Monobank:
         headers =  {'X-Token': self.token}
         url = Monobank.STATEMENT_API_URL.format(
             account=account_id,
-            date_from=int((datetime.today() - timedelta(days=n_days)).timestamp()),
+            date_from=int((datetime.combine(date.today(), datetime.min.time()) - timedelta(days=n_days)).timestamp()),
             date_to= int(datetime.now().timestamp()))
         return requests.get(url, headers=headers).json()
