@@ -64,3 +64,10 @@ class MonobankApi:
             date_from=int((datetime.combine(date.today(), datetime.min.time()) - timedelta(days=n_days)).timestamp()),
             date_to= int(datetime.now().timestamp()))
         return self.client.request(url).json()
+    
+    def request_statements_for_time_range(self, account_id, datetime_range_start, datetime_range_end):
+        url = MonobankApi.STATEMENT_API_URL.format(
+            account=account_id,
+            date_from=int(datetime_range_start.timestamp()),
+            date_to=int(datetime_range_end.timestamp()))
+        return self.client.request(url).json()
